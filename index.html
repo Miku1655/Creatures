@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eternal Arena Battler</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Main Game Container -->
+    <div id="game-container">
+        
+        <!-- Navigation Header -->
+        <header id="game-header">
+            <div class="header-left">
+                <h1>Eternal Arena Battler</h1>
+            </div>
+            <div class="header-center">
+                <div class="resource-display">
+                    <span class="resource gold">
+                        <span class="icon">💰</span>
+                        <span id="gold-amount">1000</span>
+                    </span>
+                    <span class="resource gems">
+                        <span class="icon">💎</span>
+                        <span id="gem-amount">50</span>
+                    </span>
+                    <span class="resource dust">
+                        <span class="icon">✨</span>
+                        <span id="dust-amount">200</span>
+                    </span>
+                </div>
+            </div>
+            <div class="header-right">
+                <button id="settings-btn" class="icon-btn">⚙️</button>
+            </div>
+        </header>
+
+        <!-- Main Navigation Menu -->
+        <nav id="main-nav">
+            <button class="nav-btn active" data-screen="team">Team</button>
+            <button class="nav-btn" data-screen="campaign">Campaign</button>
+            <button class="nav-btn" data-screen="arena">Arena</button>
+            <button class="nav-btn" data-screen="collection">Collection</button>
+            <button class="nav-btn" data-screen="shop">Shop</button>
+            <button class="nav-btn" data-screen="inventory">Inventory</button>
+        </nav>
+
+        <!-- Screen Container (Dynamic Content) -->
+        <main id="screen-container">
+            <!-- Screens will be loaded here dynamically -->
+        </main>
+
+        <!-- Battle Overlay (Hidden by default) -->
+        <div id="battle-overlay" class="overlay hidden">
+            <div id="battle-container">
+                <!-- Battle UI loads here -->
+            </div>
+        </div>
+
+        <!-- Modal Container (for popups) -->
+        <div id="modal-overlay" class="overlay hidden">
+            <div id="modal-container">
+                <!-- Modals load here -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Data Files (Content Creator Friendly) -->
+    <script src="data/creatures.js"></script>
+    <script src="data/abilities.js"></script>
+    <script src="data/locations.js"></script>
+    <script src="data/campaign.js"></script>
+    <script src="data/arena.js"></script>
+    <script src="data/shop.js"></script>
+    <script src="data/quests.js"></script>
+
+    <!-- Core Game Logic -->
+    <script src="js/game-state.js"></script>
+    <script src="js/battle-engine.js"></script>
+    <script src="js/creature-manager.js"></script>
+    <script src="js/ui-manager.js"></script>
+    <script src="js/resource-manager.js"></script>
+    
+    <!-- UI Screens -->
+    <script src="js/screens/team-screen.js"></script>
+    <script src="js/screens/campaign-screen.js"></script>
+    <script src="js/screens/arena-screen.js"></script>
+    <script src="js/screens/collection-screen.js"></script>
+    <script src="js/screens/shop-screen.js"></script>
+    <script src="js/screens/inventory-screen.js"></script>
+    <script src="js/screens/battle-screen.js"></script>
+
+    <!-- Main Game Initialization -->
+    <script src="js/main.js"></script>
+</body>
+</html>
