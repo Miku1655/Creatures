@@ -1,0 +1,572 @@
+/* ==================== GLOBAL STYLES ==================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Color Palette */
+    --primary-bg: #1a1a2e;
+    --secondary-bg: #16213e;
+    --accent-bg: #0f3460;
+    --highlight: #e94560;
+    --text-primary: #eee;
+    --text-secondary: #aaa;
+    --border-color: #333;
+    
+    /* Rarity Colors */
+    --common: #9e9e9e;
+    --uncommon: #4caf50;
+    --rare: #2196f3;
+    --epic: #9c27b0;
+    --legendary: #ff9800;
+    
+    /* Resource Colors */
+    --gold: #ffd700;
+    --gems: #00bcd4;
+    --dust: #e1bee7;
+    
+    /* Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--primary-bg) 0%, var(--secondary-bg) 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* ==================== LAYOUT ==================== */
+#game-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==================== HEADER ==================== */
+#game-header {
+    background: var(--secondary-bg);
+    padding: var(--spacing-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--border-color);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.header-left h1 {
+    font-size: 1.5rem;
+    color: var(--highlight);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.resource-display {
+    display: flex;
+    gap: var(--spacing-lg);
+}
+
+.resource {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 1.1rem;
+    font-weight: bold;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--accent-bg);
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border-color);
+}
+
+.resource.gold { border-color: var(--gold); color: var(--gold); }
+.resource.gems { border-color: var(--gems); color: var(--gems); }
+.resource.dust { border-color: var(--dust); color: var(--dust); }
+
+.icon-btn {
+    background: var(--accent-bg);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.icon-btn:hover {
+    background: var(--highlight);
+    transform: scale(1.1);
+}
+
+/* ==================== NAVIGATION ==================== */
+#main-nav {
+    display: flex;
+    background: var(--accent-bg);
+    padding: var(--spacing-sm);
+    gap: var(--spacing-sm);
+    border-bottom: 2px solid var(--border-color);
+    overflow-x: auto;
+}
+
+.nav-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: var(--spacing-md);
+    background: var(--secondary-bg);
+    border: 2px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+    background: var(--accent-bg);
+    color: var(--text-primary);
+    border-color: var(--highlight);
+}
+
+.nav-btn.active {
+    background: var(--highlight);
+    color: var(--text-primary);
+    border-color: var(--highlight);
+    box-shadow: 0 0 15px rgba(233, 69, 96, 0.5);
+}
+
+/* ==================== MAIN CONTENT ==================== */
+#screen-container {
+    flex: 1;
+    padding: var(--spacing-lg);
+    overflow-y: auto;
+}
+
+/* ==================== CREATURE CARD ==================== */
+.creature-card {
+    background: var(--secondary-bg);
+    border: 3px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.creature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    border-color: var(--highlight);
+}
+
+.creature-card.common { border-color: var(--common); }
+.creature-card.uncommon { border-color: var(--uncommon); }
+.creature-card.rare { border-color: var(--rare); }
+.creature-card.epic { border-color: var(--epic); }
+.creature-card.legendary { border-color: var(--legendary); }
+
+.creature-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.creature-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.creature-level {
+    background: var(--accent-bg);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+}
+
+.creature-image {
+    width: 100%;
+    height: 150px;
+    background: var(--accent-bg);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.creature-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.stat {
+    background: var(--accent-bg);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.stat-value {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.creature-abilities {
+    margin-top: var(--spacing-md);
+}
+
+.ability {
+    background: var(--accent-bg);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-xs);
+    font-size: 0.9rem;
+}
+
+.ability-name {
+    font-weight: bold;
+    color: var(--highlight);
+}
+
+/* ==================== BATTLE FIELD ==================== */
+.battle-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    background: var(--secondary-bg);
+    border-radius: var(--radius-lg);
+    border: 3px solid var(--border-color);
+}
+
+.team-row {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+}
+
+.team-row.enemy {
+    flex-direction: row;
+}
+
+.team-row.player {
+    flex-direction: row;
+}
+
+.battle-slot {
+    width: 180px;
+    height: 240px;
+    background: var(--accent-bg);
+    border: 3px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm);
+    transition: all 0.3s ease;
+}
+
+.battle-slot.empty {
+    border-style: dashed;
+    opacity: 0.5;
+}
+
+.battle-slot.active {
+    border-color: var(--highlight);
+    box-shadow: 0 0 20px rgba(233, 69, 96, 0.6);
+}
+
+.battle-slot.attacking {
+    animation: attack-pulse 0.5s ease;
+}
+
+@keyframes attack-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.battle-creature-name {
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+.battle-creature-image {
+    font-size: 3rem;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.battle-hp-bar {
+    width: 100%;
+    height: 20px;
+    background: var(--primary-bg);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    position: relative;
+}
+
+.hp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50, #8bc34a);
+    transition: width 0.5s ease;
+}
+
+.hp-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+.cooldown-indicator {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: var(--highlight);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+/* ==================== RESERVE LINE ==================== */
+.reserve-line {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: center;
+    padding: var(--spacing-md);
+    background: var(--accent-bg);
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border-color);
+}
+
+.reserve-slot {
+    width: 80px;
+    height: 100px;
+    background: var(--secondary-bg);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: move;
+    transition: all 0.3s ease;
+}
+
+.reserve-slot:hover {
+    border-color: var(--highlight);
+    transform: scale(1.05);
+}
+
+.reserve-slot.empty {
+    border-style: dashed;
+    opacity: 0.3;
+}
+
+/* ==================== BUTTONS ==================== */
+.btn {
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--highlight);
+    color: var(--text-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    background: #d93850;
+    transform: scale(1.05);
+}
+
+.btn:disabled {
+    background: var(--border-color);
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.btn-secondary {
+    background: var(--accent-bg);
+    border: 2px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background: var(--secondary-bg);
+    border-color: var(--highlight);
+}
+
+.btn-success {
+    background: #4caf50;
+}
+
+.btn-success:hover {
+    background: #45a049;
+}
+
+/* ==================== GRID LAYOUTS ==================== */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.list-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+/* ==================== MODAL/OVERLAY ==================== */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.overlay.hidden {
+    display: none;
+}
+
+#battle-container,
+#modal-container {
+    background: var(--primary-bg);
+    border: 3px solid var(--highlight);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    max-width: 90%;
+    max-height: 90%;
+    overflow-y: auto;
+}
+
+/* ==================== BATTLE CONTROLS ==================== */
+.battle-controls {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    padding: var(--spacing-lg);
+}
+
+.battle-mode-toggle {
+    display: flex;
+    gap: var(--spacing-sm);
+    background: var(--accent-bg);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-md);
+}
+
+/* ==================== DAMAGE/HEAL NUMBERS ==================== */
+.damage-number {
+    position: absolute;
+    font-size: 1.5rem;
+    font-weight: bold;
+    pointer-events: none;
+    animation: float-up 1s ease-out forwards;
+}
+
+.damage-number.damage {
+    color: #ff4444;
+}
+
+.damage-number.heal {
+    color: #44ff44;
+}
+
+@keyframes float-up {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+}
+
+/* ==================== SCROLLBAR ==================== */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--primary-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--accent-bg);
+    border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--highlight);
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+    .resource-display {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .card-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .battle-slot {
+        width: 140px;
+        height: 200px;
+    }
+    
+    .team-row {
+        flex-wrap: wrap;
+    }
+}
