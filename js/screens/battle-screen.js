@@ -153,6 +153,11 @@ const BattleScreen = {
                     ? `<div class="cooldown-indicator">${creature.cooldowns.active}</div>` 
                     : (creature.active ? '<div style="position: absolute; top: 5px; right: 5px; background: #4caf50; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold;">✓</div>' : '');
                 
+                // Add ability button for player creatures if in manual mode and ability is ready
+                const abilityButton = side === 'player' && !battleEngine.autoMode && creature.active && creature.cooldowns.active === 0
+                    ? `<button class="btn btn-success" style="width: 100%; margin-top: 4px; padding: 4px; font-size: 0.75rem;" onclick="BattleScreen.useAbility(${i})" title="${creature.active.name}">🔥 Use Ability</button>`
+                    : '';
+                
                 slot.innerHTML = `
                     <div class="battle-creature-name">${creature.name}</div>
                     <div class="battle-creature-image">${creature.emoji}</div>
@@ -161,6 +166,7 @@ const BattleScreen = {
                         <div class="hp-text">${creature.currentHp}/${creature.maxHp}</div>
                     </div>
                     ${cdDisplay}
+                    ${abilityButton}
                 `;
             } else {
                 slot.classList.add('empty');
@@ -206,11 +212,22 @@ const BattleScreen = {
         // Handle rewards based on context
         if (this.currentContext.mode === 'campaign') {
             if (won) {
-                gameState.completeCampaignBattle(
+                const completed = gameState.completeCampaignBattle(
                     this.currentContext.locationId,
                     this.currentContext.battleId,
                     this.currentContext.rewards
                 );
+                
+                // Check if we unlocked a new location
+                const battle = getBattle(this.currentContext.locationId, this.currentContext.battleId);
+                if (battle && battle.unlocks) {
+                    const unlockedLocation = getLocationById(battle.unlocks);
+                    if (unlockedLocation) {
+                        setTimeout(() => {
+                            UIManager.showNotification(`🎉 New location unlocked: ${unlockedLocation.name}!`, 'success');
+                        }, 1500);
+                    }
+                }
                 
                 UIManager.showNotification('Victory! Rewards collected!', 'success');
             }
@@ -297,6 +314,29 @@ const BattleScreen = {
             btn.classList.add('btn-secondary');
             nextBtn.style.display = '';
         }
+        
+        // Refresh to show/hide ability buttons
+        if (battleEngine.battleState) {
+            this.updateBattleDisplay(battleEngine.battleState);
+        }
+    },
+    
+    useAbility(creatureIndex) {
+        if (!battleEngine.battleState || battleEngine.autoMode) return;
+        
+        const creature = battleEngine.battleState.player.field[creatureIndex];
+        if (!creature || !creature.alive || !creature.active || creature.cooldowns.active > 0) {
+            UIManager.showNotification('Cannot use ability!', 'error');
+            return;
+        }
+        
+        // Mark ability for use
+        battleEngine.useActiveAbility(creature, 'player');
+        
+        // Update display
+        this.updateBattleDisplay(battleEngine.battleState);
+        
+        UIManager.showNotification(`${creature.name} used ${creature.active.name}!`, 'success');
     },
     
     nextTurn() {
