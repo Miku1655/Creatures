@@ -19,6 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set up navigation
     setupNavigation();
     
+    // Set up settings button
+    document.getElementById('settings-btn').addEventListener('click', () => {
+        showSettingsModal();
+    });
+    
     // Load initial screen (Team screen)
     loadScreen('team');
     
@@ -118,3 +123,71 @@ window.gameAPI = {
     gameState,
     battleEngine
 };
+
+// Settings modal
+function showSettingsModal() {
+    const settings = gameState.state.settings;
+    
+    const content = `
+        <div style="text-align: left; max-width: 400px; margin: 0 auto;">
+            <h3 style="margin-bottom: 16px;">Game Settings</h3>
+            
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 8px;">
+                    <input type="checkbox" id="setting-auto-mode" ${settings.autoMode ? 'checked' : ''}> 
+                    Auto Battle Mode by Default
+                </label>
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 4px;">SFX Volume:</label>
+                <input type="range" id="setting-sfx" min="0" max="100" value="${settings.sfxVolume * 100}" style="width: 100%;">
+                <span id="sfx-value">${Math.round(settings.sfxVolume * 100)}%</span>
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 4px;">Music Volume:</label>
+                <input type="range" id="setting-music" min="0" max="100" value="${settings.musicVolume * 100}" style="width: 100%;">
+                <span id="music-value">${Math.round(settings.musicVolume * 100)}%</span>
+            </div>
+            
+            <div style="background: var(--accent-bg); padding: 12px; border-radius: 8px; margin-top: 24px;">
+                <div style="font-size: 0.9rem; opacity: 0.8;">Game Version: ${gameState.state.version}</div>
+                <div style="font-size: 0.9rem; opacity: 0.8;">Total Battles: ${gameState.state.stats.totalBattles}</div>
+                <div style="font-size: 0.9rem; opacity: 0.8;">Win Rate: ${gameState.state.stats.totalBattles > 0 ? Math.round((gameState.state.stats.totalWins / gameState.state.stats.totalBattles) * 100) : 0}%</div>
+            </div>
+        </div>
+    `;
+    
+    UIManager.showModal('Settings', content, [
+        {
+            text: 'Save',
+            class: 'btn-success',
+            onclick: 'saveSettings()'
+        },
+        {
+            text: 'Close',
+            class: 'btn-secondary',
+            onclick: 'UIManager.hideModal()'
+        }
+    ]);
+    
+    // Add event listeners for live updates
+    document.getElementById('setting-sfx').addEventListener('input', (e) => {
+        document.getElementById('sfx-value').textContent = e.target.value + '%';
+    });
+    
+    document.getElementById('setting-music').addEventListener('input', (e) => {
+        document.getElementById('music-value').textContent = e.target.value + '%';
+    });
+}
+
+function saveSettings() {
+    gameState.state.settings.autoMode = document.getElementById('setting-auto-mode').checked;
+    gameState.state.settings.sfxVolume = document.getElementById('setting-sfx').value / 100;
+    gameState.state.settings.musicVolume = document.getElementById('setting-music').value / 100;
+    gameState.save();
+    
+    UIManager.showNotification('Settings saved!', 'success');
+    UIManager.hideModal();
+}
