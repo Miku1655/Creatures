@@ -7,7 +7,7 @@ function loadCollectionScreen() {
     const container = document.getElementById('screen-container');
     
     const ownedCreatures = gameState.state.collection;
-    const discoveredBaseIds = [...new Set(ownedCreatures.map(c => c.baseId))];
+    const discoveredBaseIds = gameState.state.discoveredCreatures || [];
     const totalCreatures = CREATURES_DATA.length;
     
     let html = '<div class="screen collection-screen">';
