@@ -20,6 +20,9 @@ class GameState {
             // Collection limits
             collectionLimit: 60,
             
+            // Discovered creatures (baseIds) - persists even after selling
+            discoveredCreatures: [],
+            
             // Player's creature collection
             collection: [],
             
@@ -175,6 +178,15 @@ class GameState {
         
         this.state.collection.push(creature);
         this.state.stats.creaturesAcquired++;
+        
+        // Track discovery
+        if (!this.state.discoveredCreatures) {
+            this.state.discoveredCreatures = [];
+        }
+        if (!this.state.discoveredCreatures.includes(creatureData.id)) {
+            this.state.discoveredCreatures.push(creatureData.id);
+        }
+        
         this.save();
         return creature;
     }
@@ -245,11 +257,30 @@ class GameState {
     }
 
     addToTeam(creatureId) {
-        if (this.state.team.length >= 8) return false;
-        if (!this.state.collection.find(c => c.id === creatureId)) return false;
-        // Allow duplicates - removed the check
+        console.log('=== addToTeam called ===');
+        console.log('Creature ID:', creatureId);
+        console.log('Current team length:', this.state.team.length);
+        console.log('Current team:', JSON.stringify(this.state.team));
+        console.log('Collection has this creature:', this.state.collection.some(c => c.id === creatureId));
         
+        if (this.state.team.length >= 8) {
+            console.log('FAILED: Team is full (8/8)');
+            return false;
+        }
+        
+        const creature = this.state.collection.find(c => c.id === creatureId);
+        if (!creature) {
+            console.log('FAILED: Creature not found in collection');
+            return false;
+        }
+        
+        console.log('Found creature:', creature.name, 'Level', creature.level);
+        
+        // Allow duplicates - no check for existing
         this.state.team.push(creatureId);
+        console.log('SUCCESS: Added to team. New length:', this.state.team.length);
+        console.log('New team:', JSON.stringify(this.state.team));
+        
         this.save();
         return true;
     }
