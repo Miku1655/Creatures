@@ -5,9 +5,11 @@
 
 const BattleScreen = {
     currentContext: null,
+    currentSpeed: '1x',
     
     startBattle(playerTeam, enemyTeam, context) {
         this.currentContext = context;
+        this.currentSpeed = '1x';
         
         // Show battle overlay
         const overlay = document.getElementById('battle-overlay');
@@ -81,13 +83,22 @@ const BattleScreen = {
         
         // Controls
         html += '<div class="battle-controls">';
-        html += '<button class="btn btn-secondary" onclick="BattleScreen.toggleSpeed()">Speed: 1x</button>';
+        html += '<button id="mode-toggle-btn" class="btn btn-success" onclick="BattleScreen.toggleMode()">Mode: Auto</button>';
+        html += '<button id="next-turn-btn" class="btn" onclick="BattleScreen.nextTurn()" style="display: none;">▶️ Next Turn</button>';
+        html += '<div style="display: flex; gap: 8px;">';
+        html += '<button class="btn btn-secondary speed-btn" data-speed="1x" onclick="BattleScreen.setSpeed(\'1x\')">1x</button>';
+        html += '<button class="btn btn-secondary speed-btn" data-speed="2x" onclick="BattleScreen.setSpeed(\'2x\')">2x</button>';
+        html += '<button class="btn btn-secondary speed-btn" data-speed="4x" onclick="BattleScreen.setSpeed(\'4x\')">4x</button>';
+        html += '</div>';
         html += '<button class="btn" style="background: #f44336;" onclick="BattleScreen.forfeit()">Forfeit</button>';
         html += '</div>';
         
         html += '</div>';
         
         container.innerHTML = html;
+        
+        // Highlight current speed
+        this.updateSpeedButtons();
     },
     
     renderTeamSlots(side, count) {
@@ -138,6 +149,10 @@ const BattleScreen = {
             
             if (creature && creature.alive) {
                 slot.classList.remove('empty');
+                const cdDisplay = creature.cooldowns.active > 0 
+                    ? `<div class="cooldown-indicator">${creature.cooldowns.active}</div>` 
+                    : (creature.active ? '<div style="position: absolute; top: 5px; right: 5px; background: #4caf50; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold;">✓</div>' : '');
+                
                 slot.innerHTML = `
                     <div class="battle-creature-name">${creature.name}</div>
                     <div class="battle-creature-image">${creature.emoji}</div>
@@ -145,7 +160,7 @@ const BattleScreen = {
                         <div class="hp-fill" style="width: ${(creature.currentHp / creature.maxHp) * 100}%"></div>
                         <div class="hp-text">${creature.currentHp}/${creature.maxHp}</div>
                     </div>
-                    ${creature.cooldowns.active > 0 ? `<div class="cooldown-indicator">${creature.cooldowns.active}</div>` : ''}
+                    ${cdDisplay}
                 `;
             } else {
                 slot.classList.add('empty');
@@ -264,9 +279,52 @@ const BattleScreen = {
         }
     },
     
+    toggleMode() {
+        battleEngine.autoMode = !battleEngine.autoMode;
+        const btn = document.getElementById('mode-toggle-btn');
+        const nextBtn = document.getElementById('next-turn-btn');
+        
+        if (battleEngine.autoMode) {
+            btn.textContent = 'Mode: Auto';
+            btn.classList.add('btn-success');
+            btn.classList.remove('btn-secondary');
+            nextBtn.style.display = 'none';
+            // Resume auto
+            battleEngine.runAutoTurn();
+        } else {
+            btn.textContent = 'Mode: Manual';
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-secondary');
+            nextBtn.style.display = '';
+        }
+    },
+    
+    nextTurn() {
+        if (!battleEngine.autoMode) {
+            battleEngine.executeNextTurn();
+        }
+    },
+    
+    setSpeed(speed) {
+        this.currentSpeed = speed;
+        battleEngine.setBattleSpeed(speed);
+        this.updateSpeedButtons();
+    },
+    
+    updateSpeedButtons() {
+        document.querySelectorAll('.speed-btn').forEach(btn => {
+            if (btn.dataset.speed === this.currentSpeed) {
+                btn.classList.add('btn-success');
+                btn.classList.remove('btn-secondary');
+            } else {
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-secondary');
+            }
+        });
+    },
+    
     toggleSpeed() {
-        // Placeholder for speed toggle
-        UIManager.showNotification('Speed toggle not yet implemented', 'info');
+        // Legacy - now handled by setSpeed
     },
     
     forfeit() {
