@@ -58,7 +58,8 @@ class BattleEngine {
         this.updateCallback();
         
         if (this.autoMode) {
-            this.runAutoTurn();
+            // Use battle speed delay even for first turn
+            setTimeout(() => this.runAutoTurn(), this.battleSpeed);
         }
     }
 
@@ -286,6 +287,8 @@ class BattleEngine {
 
     // Process passive abilities
     processPassives(creature, side) {
+        if (!creature || !creature.alive) return;
+        
         // Regen
         if (this.hasPassive(creature, 'regen')) {
             const heal = Math.floor(creature.maxHp * 0.1);
