@@ -73,6 +73,8 @@ function loadTeamScreen() {
         available.forEach(creature => {
             const creatureJson = JSON.stringify(creature).replace(/"/g, '&quot;');
             const canAdd = team.length < 8;
+            // Escape the ID properly for onclick
+            const safeId = creature.id.replace(/'/g, "\\'");
             
             html += `
                 <div class="creature-card ${creature.rarity}">
@@ -96,7 +98,7 @@ function loadTeamScreen() {
                         </div>
                     </div>
                     <div style="display: flex; gap: 8px; margin-top: 8px;">
-                        <button class="btn ${canAdd ? 'btn-success' : ''}" style="flex: 1;" onclick="TeamScreen.addToTeam('${creature.id}')" ${!canAdd ? 'disabled' : ''}>
+                        <button class="btn ${canAdd ? 'btn-success' : ''}" style="flex: 1;" onclick="TeamScreen.addToTeam('${safeId}')" ${!canAdd ? 'disabled' : ''}>
                             ${canAdd ? 'Add to Team' : 'Team Full'}
                         </button>
                         <button class="btn btn-secondary" style="flex: 1;" onclick='CreatureManager.openCreatureDetails(${creatureJson})'>View</button>
@@ -116,16 +118,26 @@ function loadTeamScreen() {
 
 const TeamScreen = {
     addToTeam(creatureId) {
+        console.log(`Attempting to add creature ${creatureId} to team`);
+        console.log(`Current team size: ${gameState.state.team.length}`);
+        console.log(`Current team:`, gameState.state.team);
+        
         if (gameState.addToTeam(creatureId)) {
             UIManager.showNotification('Added to team!', 'success');
-            loadTeamScreen();
+            console.log(`Successfully added. New team size: ${gameState.state.team.length}`);
+            // Force immediate reload
+            setTimeout(() => loadTeamScreen(), 100);
+        } else {
+            UIManager.showNotification('Could not add to team!', 'error');
         }
     },
     
     removeFromTeam(creatureId) {
+        console.log(`Removing creature ${creatureId} from team`);
         if (gameState.removeFromTeam(creatureId)) {
             UIManager.showNotification('Removed from team', 'info');
-            loadTeamScreen();
+            // Force immediate reload
+            setTimeout(() => loadTeamScreen(), 100);
         }
     }
 };
