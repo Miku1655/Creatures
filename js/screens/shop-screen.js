@@ -1,227 +1,373 @@
 // ========================================
-// SHOP SCREEN
-// Purchase creatures and resources
+// GAME STATE MANAGER
+// Handles all game state and save/load
 // ========================================
 
-function loadShopScreen() {
-    const container = document.getElementById('screen-container');
-    
-    let html = '<div class="screen shop-screen">';
-    html += '<h2>Shop</h2>';
-    html += '<p class="screen-subtitle">Purchase creature packs and resources</p>';
-    
-    // Daily Free Pack
-    html += '<div class="section">';
-    html += '<h3>🎁 Daily Free</h3>';
-    
-    const canClaim = canClaimFreeDaily(gameState.state);
-    html += `
-        <div style="padding: 16px; background: var(--accent-bg); border-radius: var(--radius-md); max-width: 400px;">
-            <h4>Daily Free Pack</h4>
-            <p style="opacity: 0.8;">2 random creatures • Resets every 24 hours</p>
-            <button class="btn btn-success" style="margin-top: 12px; width: 100%;" onclick="ShopScreen.claimFreeDaily()" ${!canClaim ? 'disabled' : ''}>
-                ${canClaim ? 'Claim Free Pack' : 'Come Back Tomorrow'}
-            </button>
-        </div>
-    `;
-    html += '</div>';
-    
-    // Creature Packs
-    html += '<div class="section" style="margin-top: 24px;">';
-    html += '<h3>📦 Creature Packs</h3>';
-    html += '<div class="card-grid">';
-    
-    SHOP_DATA.packs.forEach(pack => {
-        const canAfford = gameState.canAfford(pack.cost);
-        const costText = ResourceManager.formatCost(pack.cost);
-        
-        html += `
-            <div class="shop-pack-card" style="background: var(--secondary-bg); padding: 16px; border-radius: var(--radius-lg); border: 2px solid var(--border-color);">
-                <div style="font-size: 3rem; text-align: center; margin-bottom: 8px;">${pack.emoji}</div>
-                <h4>${pack.name}</h4>
-                <p style="opacity: 0.8; font-size: 0.9rem; margin-bottom: 12px;">${pack.description}</p>
-                <div style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 12px;">
-                    ${pack.contents.creatures} creatures
-                    ${pack.contents.guaranteedRarity ? `<br/>Guaranteed ${pack.contents.guaranteedRarity}+` : ''}
-                </div>
-                <div style="font-weight: bold; margin-bottom: 12px; color: var(--highlight);">
-                    ${costText}
-                </div>
-                <button class="btn ${canAfford ? 'btn-success' : ''}" style="width: 100%;" onclick="ShopScreen.purchasePack('${pack.id}')" ${!canAfford ? 'disabled' : ''}>
-                    ${canAfford ? 'Purchase' : 'Cannot Afford'}
-                </button>
-            </div>
-        `;
-    });
-    
-    html += '</div></div>';
-    
-    // Location Packs
-    const availablePacks = getPurchaseablePacks(gameState.state);
-    const locationPacks = availablePacks.filter(p => p.location);
-    
-    if (locationPacks.length > 0) {
-        html += '<div class="section" style="margin-top: 24px;">';
-        html += '<h3>🗺️ Location Bundles</h3>';
-        html += '<div class="card-grid">';
-        
-        locationPacks.forEach(pack => {
-            const canAfford = gameState.canAfford(pack.cost);
-            const costText = ResourceManager.formatCost(pack.cost);
-            
-            html += `
-                <div class="shop-pack-card" style="background: var(--secondary-bg); padding: 16px; border-radius: var(--radius-lg); border: 2px solid var(--border-color);">
-                    <div style="font-size: 3rem; text-align: center; margin-bottom: 8px;">${pack.emoji}</div>
-                    <h4>${pack.name}</h4>
-                    <p style="opacity: 0.8; font-size: 0.9rem; margin-bottom: 12px;">${pack.description}</p>
-                    <div style="font-weight: bold; margin-bottom: 12px; color: var(--highlight);">
-                        ${costText}
-                    </div>
-                    <button class="btn ${canAfford ? 'btn-success' : ''}" style="width: 100%;" onclick="ShopScreen.purchasePack('${pack.id}')" ${!canAfford ? 'disabled' : ''}>
-                        ${canAfford ? 'Purchase' : 'Cannot Afford'}
-                    </button>
-                </div>
-            `;
-        });
-        
-        html += '</div></div>';
+class GameState {
+    constructor() {
+        this.initializeNewGame();
     }
-    
-    // Resource Bundles
-    html += '<div class="section" style="margin-top: 24px;">';
-    html += '<h3>💎 Resources</h3>';
-    html += '<div class="card-grid">';
-    
-    SHOP_DATA.resources.forEach(resource => {
-        const canAfford = gameState.canAfford(resource.cost);
-        const costText = ResourceManager.formatCost(resource.cost);
-        
-        html += `
-            <div class="shop-pack-card" style="background: var(--secondary-bg); padding: 16px; border-radius: var(--radius-lg); border: 2px solid var(--border-color);">
-                <div style="font-size: 3rem; text-align: center; margin-bottom: 8px;">${resource.emoji}</div>
-                <h4>${resource.name}</h4>
-                <p style="opacity: 0.8; font-size: 0.9rem; margin-bottom: 12px;">${resource.description}</p>
-                <div style="font-weight: bold; margin-bottom: 12px; color: var(--highlight);">
-                    ${costText}
-                </div>
-                <button class="btn ${canAfford ? 'btn-success' : ''}" style="width: 100%;" onclick="ShopScreen.purchaseResource('${resource.id}')" ${!canAfford ? 'disabled' : ''}>
-                    ${canAfford ? 'Purchase' : 'Cannot Afford'}
-                </button>
-            </div>
-        `;
-    });
-    
-    html += '</div></div>';
-    
-    html += '</div>';
-    container.innerHTML = html;
-}
 
-const ShopScreen = {
-    claimFreeDaily() {
-        if (!canClaimFreeDaily(gameState.state)) {
-            UIManager.showNotification('Already claimed today!', 'error');
-            return;
-        }
-        
-        const pack = SHOP_DATA.dailyDeals.freeDaily;
-        const creatures = this.openPack(pack.contents);
-        
-        gameState.state.shop.lastFreeClaim = Date.now();
-        gameState.save();
-        
-        this.showPackResults(creatures, 'Daily Free Pack');
-        updateResourceDisplay();
-        loadShopScreen();
-    },
-    
-    purchasePack(packId) {
-        const pack = [...SHOP_DATA.packs, ...SHOP_DATA.locationPacks].find(p => p.id === packId);
-        if (!pack) return;
-        
-        if (!gameState.canAfford(pack.cost)) {
-            UIManager.showNotification('Cannot afford this pack!', 'error');
-            return;
-        }
-        
-        // Deduct cost
-        ResourceManager.removeResources(pack.cost);
-        
-        // Open pack
-        const creatures = this.openPack(pack.contents);
-        
-        this.showPackResults(creatures, pack.name);
-        updateResourceDisplay();
-    },
-    
-    purchaseResource(resourceId) {
-        const resource = SHOP_DATA.resources.find(r => r.id === resourceId);
-        if (!resource) return;
-        
-        if (!gameState.canAfford(resource.cost)) {
-            UIManager.showNotification('Cannot afford this!', 'error');
-            return;
-        }
-        
-        ResourceManager.removeResources(resource.cost);
-        ResourceManager.addResources(resource.contents);
-        
-        UIManager.showNotification('Resources purchased!', 'success');
-        updateResourceDisplay();
-    },
-    
-    openPack(contents) {
-        const creatures = [];
-        const availableCreatures = contents.location 
-            ? getCreaturesByLocation(contents.location)
-            : CREATURES_DATA;
-        
-        for (let i = 0; i < contents.creatures; i++) {
-            const rarity = this.selectRarity(contents.rarityWeights);
-            const rarityPool = availableCreatures.filter(c => c.rarity === rarity);
+    initializeNewGame() {
+        this.state = {
+            // Resources
+            resources: {
+                gold: 1000,
+                gems: 50,
+                dust: 200
+            },
             
-            if (rarityPool.length > 0) {
-                const creature = rarityPool[Math.floor(Math.random() * rarityPool.length)];
-                const added = gameState.addCreature(creature);
-                creatures.push(added);
+            // Collection limits
+            collectionLimit: 60,
+            
+            // Player's creature collection
+            collection: [],
+            
+            // Current team (8 creature IDs)
+            team: [],
+            
+            // Inventory (duplicates, sellable)
+            inventory: [],
+            
+            // Campaign progress
+            campaign: {
+                // location_id: { chapter: X, battle: Y, completed: [] }
+            },
+            
+            // Arena progress
+            arena: {
+                currentTier: 0,
+                highestTier: 0,
+                currentStreak: 0,
+                bestStreak: 0,
+                paidEntry: false
+            },
+            
+            // Shop state
+            shop: {
+                lastFreeClaim: 0,
+                dailyDeal: null,
+                purchasedOneTime: []
+            },
+            
+            // Quests
+            quests: {
+                daily: [],
+                weekly: [],
+                dailyResetTime: Date.now(),
+                weeklyResetTime: Date.now(),
+                completedDaily: [],
+                completedWeekly: [],
+                completedAchievements: []
+            },
+            
+            // Statistics
+            stats: {
+                totalBattles: 0,
+                totalWins: 0,
+                totalLosses: 0,
+                campaignBattles: 0,
+                arenaWins: 0,
+                upgradesPerformed: 0,
+                creaturesAcquired: 0,
+                perfectWins: 0,
+                abilitiesUsed: 0,
+                totalDamageDealt: 0,
+                chaptersCompleted: 0
+            },
+            
+            // Settings
+            settings: {
+                sfxVolume: 0.7,
+                musicVolume: 0.5,
+                autoMode: true
+            },
+            
+            // Meta
+            version: "1.0.0",
+            lastPlayed: Date.now(),
+            playtime: 0
+        };
+    }
+
+    // Save game to localStorage
+    save() {
+        try {
+            const saveData = JSON.stringify(this.state);
+            localStorage.setItem('eternal_arena_save', saveData);
+            console.log('Game saved successfully');
+            return true;
+        } catch (error) {
+            console.error('Failed to save game:', error);
+            return false;
+        }
+    }
+
+    // Load game from localStorage
+    load() {
+        try {
+            const saveData = localStorage.getItem('eternal_arena_save');
+            if (saveData) {
+                this.state = JSON.parse(saveData);
+                this.state.lastPlayed = Date.now();
+                console.log('Game loaded successfully');
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Failed to load game:', error);
+            return false;
+        }
+    }
+
+    // Reset game (delete save)
+    reset() {
+        if (confirm('Are you sure you want to reset all progress? This cannot be undone!')) {
+            localStorage.removeItem('eternal_arena_save');
+            this.initializeNewGame();
+            return true;
+        }
+        return false;
+    }
+
+    // Resource management
+    addResource(type, amount) {
+        if (this.state.resources[type] !== undefined) {
+            this.state.resources[type] += amount;
+            this.save();
+            return true;
+        }
+        return false;
+    }
+
+    removeResource(type, amount) {
+        if (this.state.resources[type] !== undefined) {
+            if (this.state.resources[type] >= amount) {
+                this.state.resources[type] -= amount;
+                this.save();
+                return true;
             }
         }
-        
-        return creatures;
-    },
-    
-    selectRarity(weights) {
-        const rand = Math.random() * 100;
-        let cumulative = 0;
-        
-        for (const [rarity, weight] of Object.entries(weights)) {
-            cumulative += weight;
-            if (rand <= cumulative) return rarity;
+        return false;
+    }
+
+    canAfford(cost) {
+        if (cost.gold && this.state.resources.gold < cost.gold) return false;
+        if (cost.gems && this.state.resources.gems < cost.gems) return false;
+        if (cost.dust && this.state.resources.dust < cost.dust) return false;
+        return true;
+    }
+
+    // Creature management
+    addCreature(creatureData) {
+        // Check collection limit
+        if (this.state.collection.length >= this.state.collectionLimit) {
+            return null; // Collection full
         }
         
-        return 'common';
-    },
-    
-    showPackResults(creatures, packName) {
-        let content = `<div style="text-align: center;">`;
-        content += `<h3>Pack Opened!</h3>`;
-        content += `<p style="margin-bottom: 16px;">You received ${creatures.length} creatures:</p>`;
-        content += `<div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">`;
+        const creature = {
+            id: `${creatureData.id}_${Date.now()}_${Math.random()}`,
+            baseId: creatureData.id,
+            ...creatureData,
+            level: 0,
+            acquiredAt: Date.now()
+        };
         
-        creatures.forEach(creature => {
-            content += `
-                <div style="padding: 8px; background: var(--accent-bg); border-radius: 8px; border: 2px solid var(--${creature.rarity});">
-                    <div style="font-size: 2rem;">${creature.emoji}</div>
-                    <div style="font-size: 0.9rem; font-weight: bold;">${creature.name}</div>
-                    <div style="font-size: 0.8rem; opacity: 0.8;">${creature.rarity}</div>
-                </div>
-            `;
-        });
-        
-        content += `</div></div>`;
-        
-        UIManager.showModal(packName, content, [
-            { text: 'Awesome!', class: 'btn-success', onclick: 'UIManager.hideModal()' }
-        ]);
+        this.state.collection.push(creature);
+        this.state.stats.creaturesAcquired++;
+        this.save();
+        return creature;
     }
-};
+
+    removeCreature(creatureId) {
+        const index = this.state.collection.findIndex(c => c.id === creatureId);
+        if (index !== -1) {
+            const removed = this.state.collection[index];
+            console.log(`Removing creature: ${removed.name} (Lv${removed.level}, ID: ${creatureId})`);
+            
+            this.state.collection.splice(index, 1);
+            
+            // Remove from team if present
+            const teamIndex = this.state.team.indexOf(creatureId);
+            if (teamIndex !== -1) {
+                this.state.team.splice(teamIndex, 1);
+                console.log(`Also removed from team position ${teamIndex}`);
+            }
+            
+            this.save();
+            return true;
+        }
+        
+        console.error(`Creature with ID ${creatureId} not found in collection`);
+        return false;
+    }
+
+    upgradeCreature(creatureId) {
+        const creature = this.state.collection.find(c => c.id === creatureId);
+        if (!creature) return false;
+        
+        if (creature.level >= 3) return false; // Max level
+        
+        // Check cost
+        const dustCost = [50, 150, 400][creature.level];
+        if (this.state.resources.dust < dustCost) return false;
+        
+        // Apply upgrade
+        this.state.resources.dust -= dustCost;
+        creature.level++;
+        
+        const upgrade = creature.upgrades[`level${creature.level}`];
+        if (upgrade) {
+            creature.baseStats.hp = upgrade.hp;
+            creature.baseStats.dmg = upgrade.dmg;
+        }
+        
+        this.state.stats.upgradesPerformed++;
+        this.save();
+        return true;
+    }
+
+    // Team management
+    setTeam(creatureIds) {
+        if (creatureIds.length > 8) return false;
+        
+        // Validate all creatures exist
+        const valid = creatureIds.every(id => 
+            this.state.collection.find(c => c.id === id)
+        );
+        
+        if (valid) {
+            this.state.team = creatureIds;
+            this.save();
+            return true;
+        }
+        return false;
+    }
+
+    addToTeam(creatureId) {
+        if (this.state.team.length >= 8) return false;
+        if (!this.state.collection.find(c => c.id === creatureId)) return false;
+        // Allow duplicates - removed the check
+        
+        this.state.team.push(creatureId);
+        this.save();
+        return true;
+    }
+
+    removeFromTeam(creatureId) {
+        const index = this.state.team.indexOf(creatureId);
+        if (index !== -1) {
+            this.state.team.splice(index, 1);
+            this.save();
+            return true;
+        }
+        return false;
+    }
+
+    // Campaign progress
+    completeCampaignBattle(locationId, battleId, rewards) {
+        if (!this.state.campaign[locationId]) {
+            this.state.campaign[locationId] = { completed: [] };
+        }
+        
+        if (!this.state.campaign[locationId].completed.includes(battleId)) {
+            this.state.campaign[locationId].completed.push(battleId);
+            
+            // Check if this battle unlocks a new location
+            const battle = getBattle(locationId, battleId);
+            if (battle && battle.unlocks) {
+                // Unlock the new location by initializing its campaign
+                if (!this.state.campaign[battle.unlocks]) {
+                    this.state.campaign[battle.unlocks] = { completed: [] };
+                }
+            }
+            
+            // Award rewards
+            if (rewards.gold) this.addResource('gold', rewards.gold);
+            if (rewards.dust) this.addResource('dust', rewards.dust);
+            if (rewards.gems) this.addResource('gems', rewards.gems);
+            if (rewards.creatures) {
+                rewards.creatures.forEach(creatureId => {
+                    const creatureData = getCreatureById(creatureId);
+                    if (creatureData) this.addCreature(creatureData);
+                });
+            }
+            
+            this.state.stats.campaignBattles++;
+            this.save();
+            return true;
+        }
+        return false;
+    }
+
+    // Arena progress
+    updateArenaTier(newTier) {
+        this.state.arena.currentTier = newTier;
+        if (newTier > this.state.arena.highestTier) {
+            this.state.arena.highestTier = newTier;
+        }
+        this.save();
+    }
+
+    updateArenaStreak(won) {
+        if (won) {
+            this.state.arena.currentStreak++;
+            this.state.arena.arenaWins++;
+            if (this.state.arena.currentStreak > this.state.arena.bestStreak) {
+                this.state.arena.bestStreak = this.state.arena.currentStreak;
+            }
+        } else {
+            this.state.arena.currentStreak = 0;
+        }
+        this.save();
+    }
+
+    // Statistics
+    recordBattleResult(won, stats = {}) {
+        this.state.stats.totalBattles++;
+        if (won) {
+            this.state.stats.totalWins++;
+        } else {
+            this.state.stats.totalLosses++;
+        }
+        
+        if (stats.perfect) {
+            this.state.stats.perfectWins++;
+        }
+        if (stats.damageDealt) {
+            this.state.stats.totalDamageDealt += stats.damageDealt;
+        }
+        if (stats.abilitiesUsed) {
+            this.state.stats.abilitiesUsed += stats.abilitiesUsed;
+        }
+        
+        this.save();
+    }
+
+    // Get team creatures
+    getTeamCreatures() {
+        return this.state.team.map(id => 
+            this.state.collection.find(c => c.id === id)
+        ).filter(c => c !== undefined);
+    }
+
+    // Export/Import save
+    exportSave() {
+        return btoa(JSON.stringify(this.state));
+    }
+
+    importSave(saveString) {
+        try {
+            const decoded = JSON.parse(atob(saveString));
+            this.state = decoded;
+            this.save();
+            return true;
+        } catch (error) {
+            console.error('Invalid save string:', error);
+            return false;
+        }
+    }
+}
+
+// Global game state instance
+const gameState = new GameState();
