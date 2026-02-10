@@ -59,18 +59,21 @@ function loadTeamScreen() {
     
     html += '</div></div>';
     
-    // Available Creatures
+    // Available Creatures - show all not in team (including duplicates of same base)
     const teamIds = team.map(c => c.id);
     const available = collection.filter(c => !teamIds.includes(c.id));
     
     html += '<div class="section" style="margin-top: 24px;">';
     html += '<h3>Available Creatures</h3>';
+    html += `<p style="opacity: 0.8; font-size: 0.9rem; margin-bottom: 12px;">Click "Add" to add a creature to your team. You can add multiple of the same creature!</p>`;
     
     if (available.length > 0) {
         html += '<div class="card-grid">';
         
         available.forEach(creature => {
             const creatureJson = JSON.stringify(creature).replace(/"/g, '&quot;');
+            const canAdd = team.length < 8;
+            
             html += `
                 <div class="creature-card ${creature.rarity}">
                     <div class="creature-header">
@@ -93,9 +96,9 @@ function loadTeamScreen() {
                         </div>
                     </div>
                     <div style="display: flex; gap: 8px; margin-top: 8px;">
-                        ${team.length < 8 ? `
-                            <button class="btn btn-success" style="flex: 1;" onclick="TeamScreen.addToTeam('${creature.id}')">Add</button>
-                        ` : ''}
+                        <button class="btn ${canAdd ? 'btn-success' : ''}" style="flex: 1;" onclick="TeamScreen.addToTeam('${creature.id}')" ${!canAdd ? 'disabled' : ''}>
+                            ${canAdd ? 'Add to Team' : 'Team Full'}
+                        </button>
                         <button class="btn btn-secondary" style="flex: 1;" onclick='CreatureManager.openCreatureDetails(${creatureJson})'>View</button>
                     </div>
                 </div>
