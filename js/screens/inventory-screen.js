@@ -56,12 +56,16 @@ function loadInventoryScreen() {
             const sellPrice = InventoryScreen.getSellPrice(creature);
             const isInTeam = gameState.state.team.includes(creature.id);
             
+            // Create a safe ID for the onclick handlers
+            const safeId = creature.id.replace(/'/g, "\\'");
+            
             html += `
-                <div class="creature-card ${creature.rarity}" data-rarity="${creature.rarity}" data-level="${creature.level}" data-name="${creature.name}">
+                <div class="creature-card ${creature.rarity}" data-rarity="${creature.rarity}" data-level="${creature.level}" data-name="${creature.name}" data-creature-id="${creature.id}">
                     <div class="creature-header">
                         <span class="creature-name">${creature.name}</span>
                         <span class="creature-level">Lv ${creature.level}</span>
                     </div>
+                    <div style="font-size: 0.7rem; opacity: 0.5; text-align: center; margin-bottom: 4px;">ID: ${creature.id.slice(-8)}</div>
                     <div class="creature-image">${creature.emoji}</div>
                     <div class="creature-stats">
                         <div class="stat">
@@ -80,13 +84,13 @@ function loadInventoryScreen() {
                     ${isInTeam ? '<div style="text-align: center; background: var(--highlight); padding: 4px; border-radius: 4px; margin: 8px 0; font-size: 0.85rem;">⚔️ IN TEAM</div>' : ''}
                     <div style="display: flex; gap: 8px; margin-top: 8px;">
                         ${upgradeAvailable ? `
-                            <button class="btn ${canUpgrade ? 'btn-success' : ''}" style="flex: 1; font-size: 0.85rem;" onclick="InventoryScreen.upgradeCreature('${creature.id}')" ${!canUpgrade ? 'disabled' : ''}>
+                            <button class="btn ${canUpgrade ? 'btn-success' : ''}" style="flex: 1; font-size: 0.85rem;" onclick="InventoryScreen.upgradeCreature('${safeId}')" ${!canUpgrade ? 'disabled' : ''}>
                                 ⬆️ ${upgradeCost}✨
                             </button>
                         ` : `
                             <button class="btn" style="flex: 1; font-size: 0.85rem;" disabled>MAX</button>
                         `}
-                        <button class="btn btn-secondary" style="flex: 1; font-size: 0.85rem;" onclick="InventoryScreen.sellCreature('${creature.id}')" ${isInTeam ? 'disabled' : ''}>
+                        <button class="btn btn-secondary" style="flex: 1; font-size: 0.85rem;" onclick="InventoryScreen.sellCreature('${safeId}')" ${isInTeam ? 'disabled' : ''}>
                             💰 ${sellPrice}
                         </button>
                     </div>
@@ -131,7 +135,10 @@ const InventoryScreen = {
     
     sellCreature(creatureId) {
         const creature = gameState.state.collection.find(c => c.id === creatureId);
-        if (!creature) return;
+        if (!creature) {
+            UIManager.showNotification('Creature not found!', 'error');
+            return;
+        }
         
         if (gameState.state.team.includes(creatureId)) {
             UIManager.showNotification('Cannot sell creature in team!', 'error');
@@ -139,14 +146,19 @@ const InventoryScreen = {
         }
         
         const sellPrice = this.getSellPrice(creature);
+        const shortId = creature.id.slice(-8);
         
-        if (confirm(`Sell ${creature.name} (Lv${creature.level}) for ${sellPrice} gold?`)) {
-            gameState.removeCreature(creatureId);
-            gameState.addResource('gold', sellPrice);
+        if (confirm(`Sell this ${creature.name} (Lv${creature.level}, ID: ${shortId}) for ${sellPrice} gold?\n\nThis will permanently remove this specific creature.`)) {
+            const success = gameState.removeCreature(creatureId);
             
-            UIManager.showNotification(`Sold for ${sellPrice} gold!`, 'success');
-            updateResourceDisplay();
-            loadInventoryScreen();
+            if (success) {
+                gameState.addResource('gold', sellPrice);
+                UIManager.showNotification(`Sold for ${sellPrice} gold!`, 'success');
+                updateResourceDisplay();
+                loadInventoryScreen();
+            } else {
+                UIManager.showNotification('Failed to sell creature!', 'error');
+            }
         }
     },
     
