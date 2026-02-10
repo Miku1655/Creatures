@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Eternal Arena Battler - Debug Info</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a2e; color: #eee; }
+        h2 { color: #e94560; }
+        .test { margin: 10px 0; padding: 10px; background: #16213e; border-radius: 4px; }
+        .success { border-left: 4px solid #4caf50; }
+        .fail { border-left: 4px solid #f44336; }
+        button { padding: 8px 16px; margin: 5px; background: #e94560; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #d93850; }
+        pre { background: #0f3460; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Debug Information</h1>
+    
+    <div class="test">
+        <h2>Quick Actions</h2>
+        <button onclick="localStorage.clear(); alert('Save cleared! Refresh page.'); location.reload();">Clear Save & Restart</button>
+        <button onclick="location.href='index.html'">Back to Game</button>
+        <button onclick="runTests()">Run All Tests</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        // Load game state
+        const saveData = localStorage.getItem('eternal_arena_save');
+        let gameState = null;
+        
+        if (saveData) {
+            try {
+                gameState = JSON.parse(saveData);
+                document.getElementById('results').innerHTML += `
+                    <div class="test success">
+                        <h2>✅ Save Found</h2>
+                        <pre>${JSON.stringify(gameState, null, 2).substring(0, 500)}...</pre>
+                    </div>
+                `;
+            } catch (e) {
+                document.getElementById('results').innerHTML += `
+                    <div class="test fail">
+                        <h2>❌ Save Corrupted</h2>
+                        <p>${e.message}</p>
+                    </div>
+                `;
+            }
+        } else {
+            document.getElementById('results').innerHTML += `
+                <div class="test fail">
+                    <h2>⚠️ No Save Found</h2>
+                    <p>Start a new game first</p>
+                </div>
+            `;
+        }
+        
+        function runTests() {
+            if (!gameState) {
+                alert('No save data to test!');
+                return;
+            }
+            
+            let html = '<h2>Test Results:</h2>';
+            
+            // Test 1: Collection Limit
+            html += `<div class="test ${gameState.collectionLimit ? 'success' : 'fail'}">
+                <strong>Collection Limit:</strong> ${gameState.collectionLimit || 'MISSING'} 
+                ${!gameState.collectionLimit ? '❌ OLD SAVE - Clear save to fix' : '✅'}
+            </div>`;
+            
+            // Test 2: Discovered Creatures
+            html += `<div class="test ${gameState.discoveredCreatures ? 'success' : 'fail'}">
+                <strong>Discovered Creatures:</strong> ${gameState.discoveredCreatures?.length || 'MISSING'} 
+                ${!gameState.discoveredCreatures ? '❌ OLD SAVE - Clear save to fix' : '✅'}
+            </div>`;
+            
+            // Test 3: Team
+            html += `<div class="test ${gameState.team ? 'success' : 'fail'}">
+                <strong>Team Size:</strong> ${gameState.team?.length || 0} / 8
+                ${gameState.team ? '✅' : '❌'}
+            </div>`;
+            
+            // Test 4: Collection
+            html += `<div class="test ${gameState.collection ? 'success' : 'fail'}">
+                <strong>Collection Size:</strong> ${gameState.collection?.length || 0}
+                ${gameState.collection ? '✅' : '❌'}
+            </div>`;
+            
+            // Test 5: Campaign
+            html += `<div class="test ${gameState.campaign ? 'success' : 'fail'}">
+                <strong>Campaign Locations:</strong> ${Object.keys(gameState.campaign || {}).join(', ') || 'None'}
+                ${gameState.campaign ? '✅' : '❌'}
+            </div>`;
+            
+            // Test 6: Duplicate creature IDs in team
+            if (gameState.team) {
+                const duplicates = gameState.team.filter((id, index) => gameState.team.indexOf(id) !== index);
+                html += `<div class="test ${duplicates.length === 0 ? 'success' : 'fail'}">
+                    <strong>Duplicate Creature IDs in Team:</strong> ${duplicates.length > 0 ? duplicates.join(', ') : 'None'}
+                    ${duplicates.length === 0 ? '✅' : '⚠️ You have same creature multiple times'}
+                </div>`;
+            }
+            
+            // Test 7: Version
+            const version = localStorage.getItem('eternal_arena_version');
+            html += `<div class="test ${version === '1.1.0' ? 'success' : 'fail'}">
+                <strong>Game Version:</strong> ${version || 'OLD'}
+                ${version === '1.1.0' ? '✅' : '❌ OLD VERSION - Hard refresh (Ctrl+Shift+R)'}
+            </div>`;
+            
+            document.getElementById('results').innerHTML += html;
+        }
+        
+        // Auto-run tests if save exists
+        if (gameState) {
+            runTests();
+        }
+    </script>
+</body>
+</html>
