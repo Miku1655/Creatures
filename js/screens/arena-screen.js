@@ -21,21 +21,25 @@ function loadArenaScreen() {
             <div style="font-size: 2rem; color: var(--highlight);">🏆</div>
             <div style="font-size: 0.9rem; opacity: 0.8;">Current Tier</div>
             <div style="font-size: 1.5rem; font-weight: bold;">${arena.currentTier}</div>
+            <div style="font-size: 0.75rem; opacity: 0.6; margin-top: 4px;">Tiers won this run</div>
         </div>
         <div style="background: var(--accent-bg); padding: 16px; border-radius: var(--radius-md); text-align: center;">
             <div style="font-size: 2rem; color: var(--highlight);">⭐</div>
             <div style="font-size: 0.9rem; opacity: 0.8;">Highest Tier</div>
             <div style="font-size: 1.5rem; font-weight: bold;">${arena.highestTier}</div>
+            <div style="font-size: 0.75rem; opacity: 0.6; margin-top: 4px;">Best ever reached</div>
         </div>
         <div style="background: var(--accent-bg); padding: 16px; border-radius: var(--radius-md); text-align: center;">
             <div style="font-size: 2rem; color: var(--highlight);">🔥</div>
-            <div style="font-size: 0.9rem; opacity: 0.8;">Current Streak</div>
+            <div style="font-size: 0.9rem; opacity: 0.8;">Win Streak</div>
             <div style="font-size: 1.5rem; font-weight: bold;">${arena.currentStreak}</div>
+            <div style="font-size: 0.75rem; opacity: 0.6; margin-top: 4px;">Consecutive wins this run</div>
         </div>
         <div style="background: var(--accent-bg); padding: 16px; border-radius: var(--radius-md); text-align: center;">
             <div style="font-size: 2rem; color: var(--highlight);">💥</div>
             <div style="font-size: 0.9rem; opacity: 0.8;">Best Streak</div>
             <div style="font-size: 1.5rem; font-weight: bold;">${arena.bestStreak}</div>
+            <div style="font-size: 0.75rem; opacity: 0.6; margin-top: 4px;">Longest win streak ever</div>
         </div>
     `;
     
