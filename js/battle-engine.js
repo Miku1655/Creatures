@@ -8,11 +8,21 @@ class BattleEngine {
         this.battleState = null;
         this.isRunning = false;
         this.autoMode = true;
+        this.battleSpeed = 1000; // Default 1 second delay
         this.battleLog = [];
         this.callbacks = {
             onUpdate: null,
             onEnd: null
         };
+    }
+    
+    setBattleSpeed(speed) {
+        const speeds = {
+            '1x': 1500,
+            '2x': 750,
+            '4x': 250
+        };
+        this.battleSpeed = speeds[speed] || 1000;
     }
 
     // Initialize a new battle
@@ -106,9 +116,16 @@ class BattleEngine {
         
         if (this.checkBattleEnd()) return;
         
-        // Continue to next turn
+        // Continue to next turn (use battle speed)
         if (this.autoMode) {
-            setTimeout(() => this.runAutoTurn(), 1000);
+            setTimeout(() => this.runAutoTurn(), this.battleSpeed);
+        }
+    }
+    
+    // Manual mode: execute next turn when called
+    executeNextTurn() {
+        if (!this.autoMode) {
+            this.runAutoTurn();
         }
     }
 
@@ -358,8 +375,10 @@ class BattleEngine {
 
     // Helper functions
     healCreature(creature, amount) {
-        const oldHp = creature.currentHp;
-        creature.currentHp = Math.min(creature.currentHp + amount, creature.maxHp);
+        if (!creature || !creature.alive) return;
+        const oldHp = creature.currentHp || 0;
+        const maxHp = creature.maxHp || 100;
+        creature.currentHp = Math.min(oldHp + amount, maxHp);
         const actualHeal = creature.currentHp - oldHp;
         if (actualHeal > 0) {
             this.log(`${creature.name} heals for ${actualHeal} HP!`);
