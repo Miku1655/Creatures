@@ -17,6 +17,9 @@ class GameState {
                 dust: 200
             },
             
+            // Collection limits
+            collectionLimit: 60,
+            
             // Player's creature collection
             collection: [],
             
@@ -157,6 +160,11 @@ class GameState {
 
     // Creature management
     addCreature(creatureData) {
+        // Check collection limit
+        if (this.state.collection.length >= this.state.collectionLimit) {
+            return null; // Collection full
+        }
+        
         const creature = {
             id: `${creatureData.id}_${Date.now()}_${Math.random()}`,
             baseId: creatureData.id,
@@ -231,7 +239,7 @@ class GameState {
     addToTeam(creatureId) {
         if (this.state.team.length >= 8) return false;
         if (!this.state.collection.find(c => c.id === creatureId)) return false;
-        if (this.state.team.includes(creatureId)) return false;
+        // Allow duplicates - removed the check
         
         this.state.team.push(creatureId);
         this.save();
@@ -256,6 +264,15 @@ class GameState {
         
         if (!this.state.campaign[locationId].completed.includes(battleId)) {
             this.state.campaign[locationId].completed.push(battleId);
+            
+            // Check if this battle unlocks a new location
+            const battle = getBattle(locationId, battleId);
+            if (battle && battle.unlocks) {
+                // Unlock the new location by initializing its campaign
+                if (!this.state.campaign[battle.unlocks]) {
+                    this.state.campaign[battle.unlocks] = { completed: [] };
+                }
+            }
             
             // Award rewards
             if (rewards.gold) this.addResource('gold', rewards.gold);
