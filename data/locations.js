@@ -132,27 +132,31 @@ function getLocationById(id) {
 
 function getUnlockedLocations(gameState) {
     return LOCATIONS_DATA.filter(loc => {
+        // If marked as unlocked by default, include it
         if (loc.unlocked) return true;
         
         if (!loc.unlockRequirement) return false;
         
         const req = loc.unlockRequirement;
         
+        // For campaign type, check if the campaign object exists for this location
+        // (it gets created when a battle that unlocks it is completed)
         if (req.type === "campaign") {
-            return gameState.campaign[req.chapter]?.completed || false;
+            // The location is unlocked if its campaign object exists in gameState
+            return gameState.campaign && gameState.campaign[loc.id] !== undefined;
         }
         
         if (req.type === "arena") {
-            return gameState.arena.highestTier >= req.tier;
+            return gameState.arena && gameState.arena.highestTier >= req.tier;
         }
         
         if (req.type === "mixed") {
             return req.conditions.every(condition => {
                 if (condition.type === "campaign") {
-                    return gameState.campaign[condition.chapter]?.completed || false;
+                    return gameState.campaign && gameState.campaign[condition.location] !== undefined;
                 }
                 if (condition.type === "arena") {
-                    return gameState.arena.highestTier >= condition.tier;
+                    return gameState.arena && gameState.arena.highestTier >= condition.tier;
                 }
                 return false;
             });
