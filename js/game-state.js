@@ -182,15 +182,23 @@ class GameState {
     removeCreature(creatureId) {
         const index = this.state.collection.findIndex(c => c.id === creatureId);
         if (index !== -1) {
+            const removed = this.state.collection[index];
+            console.log(`Removing creature: ${removed.name} (Lv${removed.level}, ID: ${creatureId})`);
+            
             this.state.collection.splice(index, 1);
+            
             // Remove from team if present
             const teamIndex = this.state.team.indexOf(creatureId);
             if (teamIndex !== -1) {
                 this.state.team.splice(teamIndex, 1);
+                console.log(`Also removed from team position ${teamIndex}`);
             }
+            
             this.save();
             return true;
         }
+        
+        console.error(`Creature with ID ${creatureId} not found in collection`);
         return false;
     }
 
