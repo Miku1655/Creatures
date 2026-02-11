@@ -33,64 +33,69 @@ const BattleScreen = {
         let html = '<div class="battle-ui">';
         
         // Battle Header
-        html += '<div style="text-align: center; margin-bottom: 24px;">';
-        html += `<h2>${this.getBattleTitle()}</h2>`;
-        html += `<div id="battle-turn-info" style="font-size: 1.1rem; opacity: 0.8;">Turn 0</div>`;
+        html += '<div style="text-align: center; margin-bottom: 16px; background: var(--accent-bg); padding: 12px; border-radius: 8px;">';
+        html += `<h2 style="margin: 0;">${this.getBattleTitle()}</h2>`;
+        html += `<div id="battle-turn-info" style="font-size: 1rem; opacity: 0.8; margin-top: 4px;">Turn 0 - Preparing...</div>`;
         html += '</div>';
         
         // Battle Field
-        html += '<div class="battle-field">';
+        html += '<div class="battle-field" style="background: var(--secondary-bg); padding: 16px; border-radius: 12px; margin-bottom: 16px;">';
         
         // Enemy Team
-        html += '<div class="team-row enemy" id="enemy-field">';
+        html += '<div style="margin-bottom: 24px;">';
+        html += '<h3 style="text-align: center; color: var(--highlight); margin-bottom: 12px;">🔴 Enemy Team</h3>';
+        html += '<div class="team-row enemy" id="enemy-field" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">';
         html += this.renderTeamSlots('enemy', 4);
-        html += '</div>';
+        html += '</div></div>';
         
         // VS Divider
-        html += '<div style="text-align: center; font-size: 2rem; font-weight: bold; margin: 16px 0;">⚔️ VS ⚔️</div>';
+        html += '<div style="text-align: center; font-size: 1.5rem; font-weight: bold; margin: 16px 0; padding: 8px; background: var(--accent-bg); border-radius: 8px;">⚔️ VERSUS ⚔️</div>';
         
         // Player Team
-        html += '<div class="team-row player" id="player-field">';
+        html += '<div>';
+        html += '<h3 style="text-align: center; color: #4caf50; margin-bottom: 12px;">🟢 Your Team</h3>';
+        html += '<div class="team-row player" id="player-field" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">';
         html += this.renderTeamSlots('player', 4);
-        html += '</div>';
+        html += '</div></div>';
         
         html += '</div>';
         
-        // Reserves
-        html += '<div style="margin-top: 24px;">';
-        html += '<h4 style="text-align: center;">Reserves</h4>';
-        html += '<div style="display: flex; gap: 32px; justify-content: center;">';
+        // Reserves Section
+        html += '<div style="background: var(--accent-bg); padding: 16px; border-radius: 12px; margin-bottom: 16px;">';
+        html += '<h4 style="text-align: center; margin-bottom: 12px;">📋 Reserves</h4>';
+        html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">';
         
         html += '<div>';
-        html += '<div style="text-align: center; margin-bottom: 8px; opacity: 0.8;">Enemy</div>';
-        html += '<div class="reserve-line" id="enemy-reserves">';
+        html += '<div style="text-align: center; margin-bottom: 8px; opacity: 0.8; font-weight: bold;">Enemy</div>';
+        html += '<div class="reserve-line" id="enemy-reserves" style="display: flex; gap: 8px; justify-content: center;">';
         html += this.renderReserveSlots('enemy', 4);
         html += '</div></div>';
         
         html += '<div>';
-        html += '<div style="text-align: center; margin-bottom: 8px; opacity: 0.8;">Player</div>';
-        html += '<div class="reserve-line" id="player-reserves">';
+        html += '<div style="text-align: center; margin-bottom: 8px; opacity: 0.8; font-weight: bold;">Player</div>';
+        html += '<div class="reserve-line" id="player-reserves" style="display: flex; gap: 8px; justify-content: center;">';
         html += this.renderReserveSlots('player', 4);
         html += '</div></div>';
         
         html += '</div></div>';
         
         // Battle Log
-        html += '<div style="margin-top: 24px;">';
-        html += '<h4>Battle Log</h4>';
-        html += '<div id="battle-log" style="background: var(--primary-bg); padding: 12px; border-radius: var(--radius-md); height: 150px; overflow-y: auto; font-size: 0.9rem; font-family: monospace;"></div>';
+        html += '<div style="margin-bottom: 16px;">';
+        html += '<h4>📜 Battle Log</h4>';
+        html += '<div id="battle-log" style="background: var(--primary-bg); padding: 12px; border-radius: 8px; height: 120px; overflow-y: auto; font-size: 0.85rem; font-family: monospace;"></div>';
         html += '</div>';
         
         // Controls
-        html += '<div class="battle-controls">';
+        html += '<div class="battle-controls" style="display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; background: var(--accent-bg); padding: 12px; border-radius: 8px;">';
         html += '<button id="mode-toggle-btn" class="btn btn-success" onclick="BattleScreen.toggleMode()">Mode: Auto</button>';
         html += '<button id="next-turn-btn" class="btn" onclick="BattleScreen.nextTurn()" style="display: none;">▶️ Next Turn</button>';
-        html += '<div style="display: flex; gap: 8px;">';
+        html += '<div style="display: flex; gap: 4px; align-items: center;">';
+        html += '<span style="opacity: 0.8; font-size: 0.9rem; margin-right: 4px;">Speed:</span>';
         html += '<button class="btn btn-secondary speed-btn" data-speed="1x" onclick="BattleScreen.setSpeed(\'1x\')">1x</button>';
         html += '<button class="btn btn-secondary speed-btn" data-speed="2x" onclick="BattleScreen.setSpeed(\'2x\')">2x</button>';
         html += '<button class="btn btn-secondary speed-btn" data-speed="4x" onclick="BattleScreen.setSpeed(\'4x\')">4x</button>';
         html += '</div>';
-        html += '<button class="btn" style="background: #f44336;" onclick="BattleScreen.forfeit()">Forfeit</button>';
+        html += '<button class="btn" style="background: #f44336;" onclick="BattleScreen.forfeit()">❌ Forfeit</button>';
         html += '</div>';
         
         html += '</div>';
@@ -149,28 +154,38 @@ const BattleScreen = {
             
             if (creature && creature.alive) {
                 slot.classList.remove('empty');
-                const cdDisplay = creature.cooldowns.active > 0 
-                    ? `<div class="cooldown-indicator">${creature.cooldowns.active}</div>` 
-                    : (creature.active ? '<div style="position: absolute; top: 5px; right: 5px; background: #4caf50; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold;">✓</div>' : '');
                 
-                // Add ability button for player creatures if in manual mode and ability is ready
-                const abilityButton = side === 'player' && !battleEngine.autoMode && creature.active && creature.cooldowns.active === 0
-                    ? `<button class="btn btn-success" style="width: 100%; margin-top: 4px; padding: 4px; font-size: 0.75rem;" onclick="BattleScreen.useAbility(${i})" title="${creature.active.name}">🔥 Use Ability</button>`
+                const isQueued = side === 'player' && battleEngine.isAbilityQueued(i);
+                const canUseAbility = creature.active && creature.cooldowns.active === 0;
+                
+                // Cooldown/ability status indicator
+                let abilityIndicator = '';
+                if (creature.cooldowns.active > 0) {
+                    abilityIndicator = `<div class="cooldown-indicator" style="position: absolute; top: 5px; right: 5px; background: #f44336; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${creature.cooldowns.active}</div>`;
+                } else if (canUseAbility) {
+                    abilityIndicator = `<div style="position: absolute; top: 5px; right: 5px; background: ${isQueued ? '#ff9800' : '#4caf50'}; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${isQueued ? '⏰' : '✓'}</div>`;
+                }
+                
+                // Ability button for player in manual mode
+                const abilityButton = side === 'player' && !battleEngine.autoMode && canUseAbility
+                    ? `<button class="btn ${isQueued ? 'btn-warning' : 'btn-success'}" style="width: 100%; margin-top: 6px; padding: 6px 4px; font-size: 0.75rem; font-weight: bold;" onclick="BattleScreen.toggleAbility(${i})" title="${creature.active.name}">
+                        ${isQueued ? '⏰ Queued' : '🔥 Queue Ability'}
+                    </button>`
                     : '';
                 
                 slot.innerHTML = `
-                    <div class="battle-creature-name">${creature.name}</div>
-                    <div class="battle-creature-image">${creature.emoji}</div>
-                    <div class="battle-hp-bar">
-                        <div class="hp-fill" style="width: ${(creature.currentHp / creature.maxHp) * 100}%"></div>
-                        <div class="hp-text">${creature.currentHp}/${creature.maxHp}</div>
+                    <div class="battle-creature-name" style="font-size: 0.85rem; font-weight: bold; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${creature.name}</div>
+                    <div class="battle-creature-image" style="font-size: 2.5rem; margin: 4px 0;">${creature.emoji}</div>
+                    <div class="battle-hp-bar" style="background: var(--primary-bg); height: 20px; border-radius: 10px; overflow: hidden; position: relative; margin: 4px 0;">
+                        <div class="hp-fill" style="background: linear-gradient(90deg, #4caf50, #8bc34a); height: 100%; width: ${(creature.currentHp / creature.maxHp) * 100}%; transition: width 0.3s;"></div>
+                        <div class="hp-text" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.75rem; font-weight: bold; text-shadow: 1px 1px 2px black;">${creature.currentHp}/${creature.maxHp}</div>
                     </div>
-                    ${cdDisplay}
+                    ${abilityIndicator}
                     ${abilityButton}
                 `;
             } else {
                 slot.classList.add('empty');
-                slot.innerHTML = '';
+                slot.innerHTML = '<div style="opacity: 0.3; font-size: 2rem;">💀</div>';
             }
         });
     },
@@ -321,22 +336,13 @@ const BattleScreen = {
         }
     },
     
-    useAbility(creatureIndex) {
-        if (!battleEngine.battleState || battleEngine.autoMode) return;
+    toggleAbility(creatureIndex) {
+        if (battleEngine.autoMode) return;
         
-        const creature = battleEngine.battleState.player.field[creatureIndex];
-        if (!creature || !creature.alive || !creature.active || creature.cooldowns.active > 0) {
-            UIManager.showNotification('Cannot use ability!', 'error');
-            return;
+        const success = battleEngine.queueAbility(creatureIndex);
+        if (success) {
+            this.updateBattleDisplay(battleEngine.battleState);
         }
-        
-        // Mark ability for use
-        battleEngine.useActiveAbility(creature, 'player');
-        
-        // Update display
-        this.updateBattleDisplay(battleEngine.battleState);
-        
-        UIManager.showNotification(`${creature.name} used ${creature.active.name}!`, 'success');
     },
     
     nextTurn() {
