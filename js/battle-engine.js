@@ -8,8 +8,9 @@ class BattleEngine {
         this.battleState = null;
         this.isRunning = false;
         this.autoMode = true;
-        this.battleSpeed = 1000; // Default 1 second delay
+        this.battleSpeed = 1500; // Default 1.5 second delay
         this.battleLog = [];
+        this.queuedAbilities = []; // For manual mode: creatures scheduled to use abilities
         this.callbacks = {
             onUpdate: null,
             onEnd: null
@@ -22,7 +23,35 @@ class BattleEngine {
             '2x': 750,
             '4x': 250
         };
-        this.battleSpeed = speeds[speed] || 1000;
+        this.battleSpeed = speeds[speed] || 1500;
+        console.log(`Battle speed set to ${speed}: ${this.battleSpeed}ms`);
+    }
+    
+    // Queue an ability for use in manual mode
+    queueAbility(creatureIndex) {
+        if (this.autoMode) return;
+        
+        const creature = this.battleState.player.field[creatureIndex];
+        if (!creature || !creature.alive || !creature.active || creature.cooldowns.active > 0) {
+            return false;
+        }
+        
+        // Toggle queuing
+        const index = this.queuedAbilities.indexOf(creatureIndex);
+        if (index > -1) {
+            this.queuedAbilities.splice(index, 1);
+            this.log(`${creature.name}'s ability unqueued`);
+        } else {
+            this.queuedAbilities.push(creatureIndex);
+            this.log(`${creature.name}'s ability queued for this turn`);
+        }
+        
+        this.updateCallback();
+        return true;
+    }
+    
+    isAbilityQueued(creatureIndex) {
+        return this.queuedAbilities.includes(creatureIndex);
     }
 
     // Initialize a new battle
@@ -136,7 +165,7 @@ class BattleEngine {
         const team = this.battleState[side];
         const enemyTeam = this.battleState[side === 'player' ? 'enemy' : 'player'];
         
-        // Process each creature in order
+        // Process each creature in order: Ability -> Attack
         for (let i = 0; i < team.field.length; i++) {
             const creature = team.field[i];
             if (!creature || !creature.alive) continue;
@@ -147,25 +176,33 @@ class BattleEngine {
                 continue;
             }
             
-            // Use active ability if available
-            if (creature.active && creature.cooldowns.active === 0) {
-                if (this.autoMode) {
-                    await this.useActiveAbility(creature, side);
-                }
+            // STEP 1: Use active ability if conditions met
+            const shouldUseAbility = this.autoMode 
+                ? (creature.active && creature.cooldowns.active === 0) // Auto: use when ready
+                : (side === 'player' && this.queuedAbilities.includes(i)); // Manual: use if queued
+                
+            if (shouldUseAbility && creature.active && creature.cooldowns.active === 0) {
+                await this.useActiveAbility(creature, side);
+                await this.delay(500);
             }
             
-            // Decrease cooldown
+            // STEP 2: Perform basic attack
+            await this.performBasicAttack(creature, i, side);
+            
+            // STEP 3: Process passive effects
+            this.processPassives(creature, side);
+            
+            // STEP 4: Decrease cooldown
             if (creature.cooldowns.active > 0) {
                 creature.cooldowns.active--;
             }
             
-            // Perform basic attack
-            await this.performBasicAttack(creature, i, side);
-            
-            // Process passive effects
-            this.processPassives(creature, side);
-            
             await this.delay(300);
+        }
+        
+        // Clear queued abilities for player after player phase
+        if (side === 'player') {
+            this.queuedAbilities = [];
         }
         
         // Process end-of-phase effects
